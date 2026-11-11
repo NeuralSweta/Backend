@@ -55,7 +55,7 @@ userSchema.pre("save",async function(next){ // don't use arrow fxn , as we want 
     if(!this.isModified("password")){ // if password is not modified, then we don't need to hash it again
         return next();
     }
-    this.password=bcrypt.hash(this.password,10)})
+    this.password= await bcrypt.hash(this.password,10)})
 
 userSchema.methods.isPasswordMatched=async function(enteredPassword){
     return await bcrypt.compare(enteredPassword,this.password)
