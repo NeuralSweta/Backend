@@ -24,4 +24,13 @@ app.use(express.static("public"))  // to serve the static files from public fold
 
 app.use(cookieParser())
 
+
+// routes import
+import userRoutes from "./routes/user.routes.js"
+
+// routes declaration
+app.use("/api/v1/users",userRoutes)  // all the routes related to user will be prefixed with /api/v1/users
+
+//http://localhost:5000/api/v1/users/register
+
 export {app}
