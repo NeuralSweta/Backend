@@ -7,26 +7,37 @@ cloudinary.config({
     cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
     api_key:process.env.CLOUDINARY_API_KEY,
     api_secret:process.env.CLOUDINARY_API_SECRET,
+    
 });
 
-const uploadToCloudinary=async(filePath,folderName)=>{
+const uploadToCloudinary=async(localFilePath,folderName)=>{
     try{
-        const result=await cloudinary.uploader.upload(filePath,{folder:folderName},{resource_type:"auto"}) //    resource_type:"auto" is used to upload any type of file, like image, video, pdf etc.
+        if(!localFilePath){
+            throw new Error("Local file path is required");
+        }
+        
+ const result=await cloudinary.uploader.upload(localFilePath,{folder:folderName,resource_type:"auto"}) //    resource_type:"auto" is used to upload any type of file, like image, video, pdf etc.
 
         // Delete the file from local after uploading it to cloudinary
-        fs.unlinkSync(filePath);
-
-        return result;
-    } catch (error) {
+            fs.unlinkSync(localFilePath);
+             return result;
+     } catch (error) {
         console.log("Error in uploading file to cloudinary",error);
-        throw error;
+    
+        if(localFilePath && fs.existsSync(localFilePath)){
+           fs.unlinkSync(localFilePath);
+       }
+         throw error;
     }
+
 };
 
-cloudinary.uploader.upload("path/to/file", {folder:"folder_name"}, (error, result) => {
-    if(error){
-        console.log("Error in uploading file to cloudinary",error);
-        throw error;
-    }
-    console.log("File uploaded to cloudinary",result);
-});
+// cloudinary.uploader.upload(localFilePath, {folder:folderName}, (error, result) => {
+//     if(error){
+//         console.log("Error in uploading file to cloudinary",error);
+//         throw error;
+//     }
+//     console.log("File uploaded to cloudinary",result);
+// });
+
+export {uploadToCloudinary};
