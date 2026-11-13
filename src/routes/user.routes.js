@@ -1,6 +1,7 @@
 import {Router} from "express";
-import {registerUser} from "../controllers/user.controller.js"
+import {registerUser,loginUser,logoutUser,refreshAccessToken}from "../controllers/user.controller.js"
 import {upload} from "../middlewares/multer.middleware.js"
+import {verifyJWT} from "../middlewares/auth.middleware.js"
 
 const router=Router() 
 
@@ -13,6 +14,12 @@ router.route("/register").post(
 
    
 
-// router.route("/login").post(loginrUser)  // login user route
+router.route("/login").post(loginUser)  // login user route
+
+//secure routes
+router.route("/logout").post(verifyJWT,logoutUser)  // logout user route, we can use verifyJWT middleware to protect the route, so that only authenticated users can access the route
+  
+
+router.route("/refresh-token").post(refreshAccessToken) 
 
 export default router

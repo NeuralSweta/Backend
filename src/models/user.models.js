@@ -51,9 +51,9 @@ const userSchema=new Schema({
 } ,{timestamps:true});
 
 // password hashing middleware
-userSchema.pre("save",async function(next){ // don't use arrow fxn , as we want to use this keyword, which is not available in arrow fxn
+userSchema.pre("save",async function(){ // don't use arrow fxn , as we want to use this keyword, which is not available in arrow fxn
     if(!this.isModified("password")){ // if password is not modified, then we don't need to hash it again
-        return next();
+        return;
     }
     this.password= await bcrypt.hash(this.password,10)})
 

@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{server}}users/logout"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"Authorization\": \"{{bearer_token_05et}}\"\r
+
+    }"
+auth:
+  type: bearer
+  credentials:
+    token: '"{{json_web_token_0ldy}}"'
+order: 3000
