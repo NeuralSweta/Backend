@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{server}}users/update-avatar"
+method: PATCH
+body:
+  type: formdata
+  content:
+    - type: file
+      key: avatar
+      src:
+        - /C:/Users/sweta/OneDrive/Pictures/Screenshots/Screenshot 2026-11-13 194212.png
+      description: ""
+      disabled: false
+auth:
+  type: bearer
+  credentials:
+    token: "{{json_web_token_0axs}}"
+order: 5000
