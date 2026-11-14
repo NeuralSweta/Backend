@@ -432,4 +432,37 @@ const getUserChannelDetails=asyncHandler(async(req,res)=>{
 });
 
 
-export {registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUserProfile,updateAccountDetails,updateUserAvatar,updateUserCoverImage,getUserChannelDetails};
+//get watch history of user
+const getUserWatchHistory=asyncHandler(async(req,res)=>{
+   const user= await User.aggregate([
+      {$match:{_id:new mongoose.Types.ObjectId(req.user?._id)}},
+      //here mongoose.Types.ObjectId is used to convert the string id to ObjectId, so that we can match it with the _id field in the user collection, because in the user collection, _id field is of type ObjectId, so we need to convert the string id to ObjectId to match it with the _id field in the user collection, but in the watchHistory array, the _id field is of type ObjectId, so we don't need to convert it to ObjectId, because it is already of type ObjectId, so we can match it with the _id field in the video collection, which is also of type ObjectId
+      {$lookup:{
+         from:"videos",
+         localField:"watchHistory",
+         foreignField:"_id",
+         as:"watchHistory",
+         //subpipeline
+         pipeline:[
+           { $lookup:{
+               from:"users",
+               localField:"uploadedBy",
+               foreignField:"_id",
+               as:"uploadedBy",
+               //subpipeline for uploadedBy to get only required fields
+               pipeline:[
+                  {$project:{fullname:1,username:1,avatar:1}}
+               ]
+           }}
+         ]
+      }}
+   ]);
+
+   if(!user || user.length===0){
+      throw new ApiError(404, "User not found")
+   }
+
+   return res.status(200).json(new ApiResponse(200, {watchHistory:user[0].watchHistory}, "Watch history fetched successfully"))
+});
+
+export {registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUserProfile,updateAccountDetails,updateUserAvatar,updateUserCoverImage,getUserChannelDetails,getUserWatchHistory};
