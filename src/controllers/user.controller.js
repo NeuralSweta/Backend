@@ -362,4 +362,74 @@ const updateUserCoverImage=asyncHandler(async(req,res)=>{
    return res.status(200).json(new ApiResponse(200, {updatedUser}, "Cover image updated successfully"))
 })
 
-export {registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUserProfile,updateAccountDetails,updateUserAvatar,updateUserCoverImage}
+
+const getUserChannelDetails=asyncHandler(async(req,res)=>{
+   const {username}=req.params
+   if(!username){
+      throw new ApiError(400, "Username is required")
+   }
+   // get user details along with subscribers count and channels subscribed to count using aggregation pipeline
+   const channel=await User.aggregate([
+      //1st stage - match the user by username
+      { $match:{username} },
+      //2nd stage - lookup to get subscribers 
+      {
+         $lookup:{
+            from:"subscriptions",
+            localField:"_id",
+            foreignField:"channel",
+            as:"subscribers"
+         }
+      },
+      //2nd stage - lookup to get channels subscribed to
+      {
+         $lookup:{
+            from:"subscriptions",
+            localField:"_id",
+            foreignField:"subscriber",
+            as:"subscribedTo"
+         }
+      },
+      //3rd stage - add fields for subscribers count and channels subscribed to count to the user document
+      {
+         $addFields:{
+            subscribersCount:{$size:"$subscribers"},
+            channelsSubscribedToCount:{$size:"$subscribedTo"}
+         }
+      },
+   //4th stage -Stage 5: Check whether logged-in user subscribed
+{
+   $addFields: {
+      isSubscriptionActive:{
+      $cond:{
+         if:{
+            $in:[req.user?._id,"$subscribers.subscriber"]
+         },
+         then:true,
+         else:false
+      }
+    }
+    }
+   },
+   //5th stage - project only required fields
+   {$project:{
+      fullname:1,
+      username:1,
+      email:1,
+      isSubscriptionActive:1,
+      subscribersCount:1,
+      channelsSubscribedToCount:1,
+   avatar:1,
+   coverImage:1,
+   createdAt:1,
+   }} 
+]);
+   if(!channel || channel.length===0){
+      throw new ApiError(404, "Channel not found")
+   }
+
+   return res.status(200).json(new ApiResponse(200, {channel}, "Channel details fetched successfully"))
+});
+
+
+export {registerUser,loginUser,logoutUser,refreshAccessToken,changeCurrentPassword,getCurrentUserProfile,updateAccountDetails,updateUserAvatar,updateUserCoverImage,getUserChannelDetails};
